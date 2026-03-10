@@ -36,7 +36,7 @@ RUN cargo build --release --bin ironclaw
 FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates libssl3 \
+    ca-certificates libssl3 curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/ironclaw /usr/local/bin/ironclaw
@@ -50,4 +50,8 @@ EXPOSE 3000
 
 ENV RUST_LOG=ironclaw=info
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
 ENTRYPOINT ["ironclaw"]
+CMD ["--no-onboard"]
